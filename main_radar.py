@@ -1,7 +1,10 @@
 import os
 import requests
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime  # 確保是用類別引入
+
+# 這樣使用就絕對不會報錯
+start_date = datetime.strptime(start_date_str, "%Y/%m/%d")
 
 # 1. 建立四大商品的目標儲存資料夾
 BASE_DIRS = {
