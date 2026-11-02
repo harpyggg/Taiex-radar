@@ -56,9 +56,49 @@ def process_and_save_data(start_date_str, end_date_str):
             # ...
         curr += timedelta(days=1)
 
+def process_txo_weekly_master(input_csv_path, output_dir="期交所資料/TXO2026"):
+    """
+    自動清洗選擇權資料，產出專屬 TXO2026 的 Weekly Master
+    明確分開「週三結算」與「週五結算」合約，並可對應特定週別
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # 讀取原始選擇權資料
+    df = pd.read_csv(input_csv_path)
+    
+    if '商品代號' in df.columns:
+        df = df[df['商品代號'].str.contains('TXO', na=False)]
+    
+    if '到期日' in df.columns:
+        df['到期日'] = pd.to_datetime(df['到期日'], errors='coerce')
+        df['ISO_Week'] = df['到期日'].dt.isocalendar().week
+        df['Settlement_Day'] = df['到期日'].dt.dayofweek
+        df['Contract_Type'] = df['Settlement_Day'].map({2: 'Wednesday_Weekly', 4: 'Friday_Monthly_Or_Weekly'})
+
+    # 輸出總合約 Master 與分開的週三、週五 Master
+    master_output_path = os.path.join(output_dir, "TXO2026_Weekly_Master.csv")
+    df.to_csv(master_output_path, index=False, encoding='utf-8-sig')
+    
+    wed_df = df[df['Settlement_Day'] == 2]
+    fri_df = df[df['Settlement_Day'] == 4]
+    
+    wed_df.to_csv(os.path.join(output_dir, "TXO2026_Weekly_Wednesday_Master.csv"), index=False, encoding='utf-8-sig')
+    fri_df.to_csv(os.path.join(output_dir, "TXO2026_Weekly_Friday_Master.csv"), index=False, encoding='utf-8-sig')
+    
+    print(f"[Success] TXO2026 Weekly Master 已成功產出並歸類至: {output_dir}")
+
+
+def main():
+    # 這裡放您原本的爬蟲與四大商品清理流程
+    print("開始執行 Taiex-radar 每日市場雷達與選擇權分類清洗...")
+    
+    # 範例：如果當天有抓到選擇權原始資料，可在此呼叫上方函式進行處理
+    # process_txo_weekly_master("path_to_raw_txo.csv")
+
 if __name__ == "__main__":
     # 自動抓取並補齊至 2026/10/30 (第 43 週)
     print("🚀 啟動 Taiex 統合雷達爬蟲管線...")
     # 設定目標補齊區間
     process_and_save_data("2026/10/20", "2026/10/30")
     print("✅ 四大商品資料更新完成！")
+
