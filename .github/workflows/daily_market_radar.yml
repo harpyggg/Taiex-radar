@@ -2,8 +2,8 @@ name: Daily Taiex Unified Radar
 
 on:
   schedule:
-    # 每天台灣時間 15:30 (UTC 07:30) 自動執行
-    - cron: '30 7 * * 1-5'
+    # 台灣時間週一至週五 17:30 執行 (UTC 09:30)
+    - cron: '30 9 * * 1-5'
   workflow_dispatch: # 支援在 Actions 頁面一鍵手動觸發
 
 jobs:
