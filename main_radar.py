@@ -98,17 +98,17 @@ def main():
 import datetime
 
 if __name__ == "__main__":
-    # 動態取得今天或自動對應最新交易日，實現每日自動滾動更新
+    # 動態取得當前日期，實現每日自動滾動更新，不再寫死固定日期
     today_str = datetime.datetime.now().strftime("%Y/%m/%d")
     
-    print("🚀 啟動 Taiex 整合雷達爬蟲管線...")
+    print("🚀 啟動 Taiex 整合雷達與選擇權 Weekly Master 自動化管線...")
     
-    # 讓它自動處理到當天，或抓取最近的動態區間
-    # 例如：自動以今天作為結算基準點，或呼叫我們剛剛建立的 TXO2026 處理函式
+    # 1. 執行四大商品與 Clean Master 的動態資料抓取與清洗
+    # 這裡可以根據您的需求設定起始基準日（例如從 2026/10/20 開始或動態區間）到當天
     process_and_save_data("2026/10/20", today_str)
     
-    # 同時執行我們獨立出來的 TXO2026 Weekly Master 產出
-    # process_txo_weekly_master("期交所資料/TXO2026")
+    # 2. 同步執行 TXO2026 選擇權專屬 Weekly Master 的產出與結算日分類
+    # 讓它在每次更新時，自動把選擇權資料歸類至期交所資料/TXO2026，並產出週三/週五結算 Master
+    process_txo_weekly_master()
     
-    print("✅ 四大商品與選擇權 Weekly Master 資料更新完成！")
-
+    print("✅ 四大商品資料與 TXO2026 Weekly Master 更新完成！")
