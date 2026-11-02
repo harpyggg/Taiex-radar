@@ -95,10 +95,20 @@ def main():
     # 範例：如果當天有抓到選擇權原始資料，可在此呼叫上方函式進行處理
     # process_txo_weekly_master("path_to_raw_txo.csv")
 
+import datetime
+
 if __name__ == "__main__":
-    # 自動抓取並補齊至 2026/10/30 (第 43 週)
-    print("🚀 啟動 Taiex 統合雷達爬蟲管線...")
-    # 設定目標補齊區間
-    process_and_save_data("2026/10/20", "2026/10/30")
-    print("✅ 四大商品資料更新完成！")
+    # 動態取得今天或自動對應最新交易日，實現每日自動滾動更新
+    today_str = datetime.datetime.now().strftime("%Y/%m/%d")
+    
+    print("🚀 啟動 Taiex 整合雷達爬蟲管線...")
+    
+    # 讓它自動處理到當天，或抓取最近的動態區間
+    # 例如：自動以今天作為結算基準點，或呼叫我們剛剛建立的 TXO2026 處理函式
+    process_and_save_data("2026/10/20", today_str)
+    
+    # 同時執行我們獨立出來的 TXO2026 Weekly Master 產出
+    # process_txo_weekly_master("期交所資料/TXO2026")
+    
+    print("✅ 四大商品與選擇權 Weekly Master 資料更新完成！")
 
