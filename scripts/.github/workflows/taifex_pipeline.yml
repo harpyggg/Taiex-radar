@@ -1,0 +1,58 @@
+name: TAIFEX 3-Step Pipeline
+
+on:
+  schedule:
+    # 台灣時間每天 20:00 (UTC 12:00) 執行；若只跑週一至週五可改為 '0 12 * * 1-5'
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '單日測試日期 (YYYY/MM/DD 或 TODAY)'
+        required: false
+        default: 'TODAY'
+      run_stage_b:
+        description: '是否執行區間抓取 (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      TAIFEX_BASE_DIR: data/TAIFEX
+      TAIFEX_MASTER_DIR: data/TAIFEX
+      TAIFEX_RAW_DIR: data/TAIFEX/Raw_TAIFEX
+      GDRIVE_TAIFEX_FOLDER_ID: ${{ secrets.GDRIVE_TAIFEX_FOLDER_ID }}
+      GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+      DRY_RUN: 'false'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pull existing master files from Google Drive
+        run: python scripts/sync_to_gdrive.py pull
+
+      - name: Step 1 - Crawl TAIFEX data
+        env:
+          TARGET_DATE: ${{ github.event.inputs.target_date || 'TODAY' }}
+          RUN_STAGE_B: ${{ github.event.inputs.run_stage_b || 'false' }}
+        run: python scripts/step1_crawl.py
+
+      - name: Step 2 - Build Clean Master
+        run: python scripts/step2_clean_master.py
+
+      - name: Step 3 - Build Profile
+        run: python scripts/step3_build_profile.py
+
+      - name: Push updated files back to Google Drive
+        run: python scripts/sync_to_gdrive.py push
