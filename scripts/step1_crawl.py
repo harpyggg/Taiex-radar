@@ -4,20 +4,20 @@ from io import StringIO
 import requests
 import pandas as pd
 
-
 def get_target_date() -> datetime.date:
     """
     取得目標交易日期：
-    若環境變數 TARGET_DATE 有指定（格式 YYYY-MM-DD 或 YYYY/MM/DD），則優先使用；
-    否則預設抓今天（台北時區）。
+    若環境變數 TARGET_DATE 有指定日期（YYYY-MM-DD 或 YYYY/MM/DD），則使用該日期；
+    若為空或 'TODAY'，則預設抓今天（台北時區）。
     """
     env_date = os.environ.get("TARGET_DATE", "").strip()
-    if env_date:
+    if env_date and env_date.upper() != "TODAY":
         cleaned = env_date.replace("/", "-")
         return datetime.date.fromisoformat(cleaned)
 
     tz_taipei = datetime.timezone(datetime.timedelta(hours=8))
     return datetime.datetime.now(tz_taipei).date()
+
 
 
 def fetch_text_with_retry(url: str, params: dict | None = None, retries: int = 3) -> str | None:
