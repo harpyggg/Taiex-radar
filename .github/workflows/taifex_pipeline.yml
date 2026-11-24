@@ -3,7 +3,7 @@ name: TAIFEX 3-Step Pipeline
 on:
   schedule:
     # 台灣時間每天 20:00 (UTC 12:00) 執行；若只跑週一至週五可改為 '0 12 * * 1-5'
-    - cron: '0 12 * * *'
+    - cron: '0 12 *  * 1-5'
   workflow_dispatch:
     inputs:
       target_date:
