@@ -4,20 +4,43 @@ import sys
 from pathlib import Path
 from typing import Dict
 
+from google.auth.transport.requests import Request
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
+TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 
 def get_drive_service():
+    client_id = os.getenv("GDRIVE_OAUTH_CLIENT_ID", "").strip()
+    client_secret = os.getenv("GDRIVE_OAUTH_CLIENT_SECRET", "").strip()
+    refresh_token = os.getenv("GDRIVE_OAUTH_REFRESH_TOKEN", "").strip()
+
+    if client_id and client_secret and refresh_token:
+        creds = Credentials(
+            token=None,
+            refresh_token=refresh_token,
+            token_uri=TOKEN_URI,
+            client_id=client_id,
+            client_secret=client_secret,
+            scopes=SCOPES,
+        )
+        creds.refresh(Request())
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
+
     raw_json = os.getenv("GDRIVE_SERVICE_ACCOUNT_JSON", "").strip()
-    if not raw_json:
-        raise RuntimeError("缺少環境變數 GDRIVE_SERVICE_ACCOUNT_JSON")
-    info = json.loads(raw_json)
-    creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
-    return build("drive", "v3", credentials=creds, cache_discovery=False)
+    if raw_json:
+        info = json.loads(raw_json)
+        creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
+
+    raise RuntimeError(
+        "缺少 Google Drive 憑證：請設定 GDRIVE_OAUTH_CLIENT_ID、GDRIVE_OAUTH_CLIENT_SECRET、"
+        "GDRIVE_OAUTH_REFRESH_TOKEN（或備援的 GDRIVE_SERVICE_ACCOUNT_JSON）"
+    )
 
 
 def find_or_create_folder(service, name: str, parent_id: str) -> str:
