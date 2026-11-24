@@ -362,7 +362,10 @@ def iter_date_chunks(start_str: str, end_str: str, chunk_days: int):
 
 
 def normalize_slash_date(raw: str) -> str:
-  cleaned = raw.strip().replace("-", "/")
+  text = raw.strip()
+  if text.upper() == "TODAY":
+    return dt.datetime.now(TZ_TAIPEI).strftime("%Y/%m/%d")
+  cleaned = text.replace("-", "/")
   parsed = dt.datetime.strptime(cleaned, "%Y/%m/%d")
   return parsed.strftime("%Y/%m/%d")
 
